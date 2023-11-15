@@ -50,6 +50,7 @@ function User({ currentUserData, userData }) {
     push(ref(db, "friendrequests/"), {
       senderName: currentUserData.displayName,
       senderId: currentUserData.uid,
+      senderImg: currentUserData.photoURL,
       receiverName: userData.username,
       receiverId: userData.userId,
     });

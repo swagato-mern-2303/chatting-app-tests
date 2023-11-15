@@ -1,6 +1,5 @@
 import { getDatabase, ref, onValue } from "firebase/database";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import placeholderImg from "../assets/placeholder-img.png";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -54,7 +53,7 @@ function Request({ data }) {
       <div className="flex items-center gap-x-3">
         <img
           className="w-[70px] rounded-full"
-          src={placeholderImg}
+          src={data.senderImg}
           alt="profileImg"
         />
         <div>
