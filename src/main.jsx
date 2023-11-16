@@ -8,12 +8,13 @@ import { Provider } from "react-redux";
 import store from "./store.jsx";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBfnfqLbwlzxWJ5ybMMpkH_wW3ivy0ghtk",
-  authDomain: "chitchat-5c6f7.firebaseapp.com",
-  projectId: "chitchat-5c6f7",
-  storageBucket: "chitchat-5c6f7.appspot.com",
-  messagingSenderId: "996239897895",
-  appId: "1:996239897895:web:c1681adc8d1bb8e1c22502",
+  apiKey: "AIzaSyDIfCyRJH96-PjRxeTezlQLe7XzvyoH1bA",
+  authDomain: "chatting-app-test-f3350.firebaseapp.com",
+  projectId: "chatting-app-test-f3350",
+  storageBucket: "chatting-app-test-f3350.appspot.com",
+  messagingSenderId: "858680382367",
+  appId: "1:858680382367:web:9f0fed08d01cf247fc63aa",
+  measurementId: "G-PM38RJCECQ",
 };
 
 initializeApp(firebaseConfig);

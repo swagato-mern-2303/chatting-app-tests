@@ -1,4 +1,4 @@
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, push, remove } from "firebase/database";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -16,7 +16,7 @@ function FriendRequests() {
       let requestsarr = [];
       snapshot.forEach((item) => {
         item.val().receiverId === currentUserData.uid &&
-          requestsarr.push(item.val());
+          requestsarr.push({ ...item.val(), id: item.key });
       });
       setRequestsList(requestsarr);
     });
@@ -32,10 +32,10 @@ function FriendRequests() {
         <div className="h-full pr-3">
           {requestsList.length ? (
             requestsList.map((item, index) => (
-              <Request data={item} key={index} />
+              <Request db={db} data={item} key={index} />
             ))
           ) : (
-            <h3 className="flex h-full items-center justify-center text-xl font-bold text-slate-400">
+            <h3 className="flex h-full items-center justify-center text-xl font-bold opacity-50">
               You don&apos;t have any friend requests
             </h3>
           )}
@@ -47,7 +47,15 @@ function FriendRequests() {
 
 export default FriendRequests;
 
-function Request({ data }) {
+function Request({ data, db }) {
+  const handleAccept = () => {
+    push(ref(db, "friends/"), {
+      ...data,
+    }).then(() => {
+      remove(ref(db, "friendrequests/" + data.id));
+    });
+  };
+
   return (
     <div className="flex items-center justify-between border-b border-black/25 py-3">
       <div className="flex items-center gap-x-3">
@@ -61,7 +69,10 @@ function Request({ data }) {
           <p className="text-sm font-medium text-slate-500">Hi........</p>
         </div>
       </div>
-      <button className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white">
+      <button
+        onClick={handleAccept}
+        className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white"
+      >
         Accept
       </button>
     </div>

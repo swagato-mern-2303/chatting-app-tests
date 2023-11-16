@@ -5,13 +5,22 @@ import { useSelector } from "react-redux";
 
 function UserList() {
   const db = getDatabase();
+
   const [userList, setUserList] = useState([]);
+  const [friendRequestsIdList, setFriendRequestsIdList] = useState([]);
+  const [friendsIdList, setFriendsIdList] = useState([]);
+  const [blockedIdList, setBlockedIdList] = useState({});
+
   const currentUserData = useSelector(
     (state) => state.userLoginInfo.userLoginInfo,
   );
 
   useEffect(() => {
     const userRef = ref(db, "users/");
+    const friendRequestsRef = ref(db, "friendrequests/");
+    const friendsRef = ref(db, "friends/");
+    const blocksRef = ref(db, "blocks/");
+
     onValue(userRef, (snapshot) => {
       let userListArr = [];
       snapshot.forEach((item) => {
@@ -20,7 +29,38 @@ function UserList() {
       });
       setUserList(userListArr);
     });
+
+    onValue(friendRequestsRef, (snapshot) => {
+      let friendRequestsListArr = [];
+      snapshot.forEach((item) => {
+        friendRequestsListArr.push(item.val().senderId + item.val().receiverId);
+      });
+      setFriendRequestsIdList(friendRequestsListArr);
+    });
+
+    onValue(friendsRef, (snapshot) => {
+      const friendsIdListArr = [];
+      snapshot.forEach((item) => {
+        friendsIdListArr.push(item.val().senderId + item.val().receiverId);
+      });
+      setFriendsIdList(friendsIdListArr);
+    });
+
+    onValue(blocksRef, (snapshot) => {
+      const blockedArr = [];
+      const blockedByMeArr = [];
+      snapshot.forEach((item) => {
+        item.val().blockedByUserId === currentUserData.uid
+          ? blockedByMeArr.push(item.val().blockedUserId)
+          : blockedArr.push(item.val().blockedByUserId);
+      });
+      setBlockedIdList({
+        blockedId: blockedArr,
+        blockedByMeId: blockedByMeArr,
+      });
+    });
   }, []);
+
   return (
     <div className="relative overflow-hidden pb-1 pl-5">
       <div className="absolute inset-x-5 flex items-center justify-between bg-white pt-3">
@@ -28,14 +68,24 @@ function UserList() {
         <BsThreeDotsVertical className="text-primary-accent" size={20} />
       </div>
       <div className="h-full overflow-y-scroll pt-10">
-        <div className="pr-3">
-          {userList.map((item, index) => (
-            <User
-              currentUserData={currentUserData}
-              userData={item}
-              key={index}
-            />
-          ))}
+        <div className="h-full pr-3">
+          {userList.length ? (
+            userList.map((item, index) => (
+              <User
+                db={db}
+                friendsData={friendsIdList}
+                friendRequestsdata={friendRequestsIdList}
+                currentUserData={currentUserData}
+                blockedData={blockedIdList}
+                userData={item}
+                key={index}
+              />
+            ))
+          ) : (
+            <h3 className="flex h-full items-center justify-center text-xl font-bold opacity-50">
+              No user available
+            </h3>
+          )}
         </div>
       </div>
     </div>
@@ -44,8 +94,14 @@ function UserList() {
 
 export default UserList;
 
-function User({ currentUserData, userData }) {
-  const db = getDatabase();
+function User({
+  db,
+  currentUserData,
+  userData,
+  friendRequestsdata,
+  friendsData,
+  blockedData,
+}) {
   const handleAddFriend = () => {
     push(ref(db, "friendrequests/"), {
       senderName: currentUserData.displayName,
@@ -53,6 +109,7 @@ function User({ currentUserData, userData }) {
       senderImg: currentUserData.photoURL,
       receiverName: userData.username,
       receiverId: userData.userId,
+      receiverImg: userData.profileImg,
     });
   };
 
@@ -71,12 +128,32 @@ function User({ currentUserData, userData }) {
           </p>
         </div>
       </div>
-      <button
-        onClick={handleAddFriend}
-        className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white"
-      >
-        +
-      </button>
+      {blockedData.blockedByMeId?.includes(userData.userId) ? (
+        <button className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white">
+          User is blocked
+        </button>
+      ) : blockedData.blockedId?.includes(userData.userId) ? (
+        <button className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white">
+          You are blocked
+        </button>
+      ) : friendsData.includes(currentUserData.uid + userData.userId) ||
+        friendsData.includes(userData.userId + currentUserData.uid) ? (
+        <button className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white">
+          Friend
+        </button>
+      ) : friendRequestsdata.includes(currentUserData.uid + userData.userId) ||
+        friendRequestsdata.includes(userData.userId + currentUserData.uid) ? (
+        <button className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white">
+          Pending
+        </button>
+      ) : (
+        <button
+          onClick={handleAddFriend}
+          className="rounded-[5px] bg-primary-accent px-2 text-xl font-semibold text-white"
+        >
+          +
+        </button>
+      )}
     </div>
   );
 }
